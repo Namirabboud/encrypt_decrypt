@@ -157,43 +157,84 @@ def ask_password():
 		else:
 			print( "no password is being entered" )
 
-def encrypt( _file_ , _password_ ):
+def encrypt( full_path , _password_, path_to ):
 	'''	recursive function that encrypt files
 		if _file_ is a simple file encrypted and 
 		return 
 		and if the file is a directory encrypt 
 		all files and directory recursively
 	'''
+
+	file_name 		= get_from_string( full_path, 'file' )
+	out_filename 	= file_name + ".enc"
+	out_file = os.path.join( path_to, out_filename )
+
 	#base case
-	if os.path.isfile( _file_ ):
-		encrypt_file( _password_ , _file_ )	
-		print( "encrypt file: ", _file_ )
+	if os.path.isfile( full_path ):
+		
+		#define the out_file where the file should be encrypted
+		encrypt_file( _password_ , full_path, out_file )	
+		print( "encrypt file: ", full_path )
 
-	elif os.path.isdir( _file_ ):
-		for path, subdirs, files in os.walk( _file_ ):
+	elif os.path.isdir( full_path ):
+		# if the file entered is a dir create a dir.enc and encrypt the
+		# files in it
+		if not os.path.exists( out_file ):
+			os.makedirs( out_file )
+		path_to = os.path.join( path_to, out_file )
+
+		for path, subdirs, files in os.walk( full_path ):
 			for name in files:
-				encrypt_file( _password_ , name )
-				print( "encrypt file: ", os.path.join( path, name ) )
+				name = os.path.join( full_path, name )
+				encrypt( name, _password_ , path_to )
 			for directory in subdirs:
-				encrypt( directory, _password_ )
+				directory = os.path.join( full_path, directory )
+				encrypt( directory, _password_ , path_to )
 
-def decrypt( _file_ , _password_ ):
+def decrypt( full_path , _password_ , path_to ):
 	''' decrypt the file it's pretty
 		similar to encrypt function
 	'''
 	#base case
-	if os.path.isfile( _file_ ):
-		decrypt_file( _password_ , _file_ )	
-		print( "decrypt file: ", _file_ )
+	file_name 		= get_from_string( full_path, 'file' )
+	out_filename = os.path.splitext( file_name )[0]
+	out_file = os.path.join( path_to, out_filename )
 
-	elif os.path.isdir( _file_ ):
-		for path, subdirs, files in os.walk( _file_ ):
+	#base case
+	if os.path.isfile( full_path ):	
+		#define the out_file where the file should be encrypted
+		decrypt_file( _password_ , full_path, out_file )	
+		print( "encrypt file: ", full_path )
+
+	elif os.path.isdir( full_path ):
+		# if the file entered is a dir create a dir.enc and encrypt the
+		# files in it
+		if not os.path.exists( out_file ):
+			os.makedirs( out_file )
+		path_to = os.path.join( path_to, out_file )
+
+		for path, subdirs, files in os.walk( full_path ):
 			for name in files:
-				decrypt_file( _password_ , name )
-				print( "decrypt file: ", os.path.join( path, name ) )
+				name = os.path.join( full_path, name )
+				decrypt( name, _password_ , path_to )
 			for directory in subdirs:
-				encrypt( directory, _password_ )
-		
+				directory = os.path.join( full_path, directory )
+				decrypt( directory, _password_ , path_to )
+
+	
+def get_from_string( full_path, option ):
+
+	if full_path[-1] is '/':
+		full_path = full_path[:-1]
+
+	split_list = full_path.split( "/" )
+
+	if option is "path":
+		return full_path.replace( split_list[-1], "" )
+	
+	if option is "file":
+		return split_list[-1]
+
 				
 if __name__ == "__main__":
 
@@ -206,8 +247,10 @@ if __name__ == "__main__":
 	file_chosen = ask_file()
 	password	= ask_password()
 
+	path_to 	= get_from_string( file_chosen, 'path' )
+
 	if args.action is 'encrypt':
-		encrypt( file_chosen, password )	 
+		encrypt( file_chosen, password, path_to )	 
 
 	elif args.action is 'decrypt':
-		decrypt( file_chosen, password )
+		decrypt( file_chosen, password, path_to )
