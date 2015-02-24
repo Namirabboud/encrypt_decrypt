@@ -1,4 +1,4 @@
-'''encrypt a fike with AES'''
+'''encrypt a file with AES'''
 import os
 import sys
 import random 
